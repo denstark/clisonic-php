@@ -1,0 +1,10 @@
+clisonic -- cli music player for subsonic
+-----------------------------------------
+A simple command line music player for the subsonic music streaming service.
+
+http://subsonic.org (Subsonic homepage)
+
+Required Unix Tools:
+
+curl (http://curl.haxx.se/download.html)
+mplayer (http://www.mplayerhq.hu/design7/dload.html)
