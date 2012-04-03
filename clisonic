@@ -1,0 +1,44 @@
+#!/usr/bin/php
+<?php
+# Config file is required
+require('settings.inc.php');
+require('functions.php');
+$app = 'clisonic-php';
+$apiver = '1.7.0';
+$baseurl = "$method://$server:$port/rest";
+$dopts = "?u=$username&p=$password&v=$apiver&c=$app";
+$inputHandle = fopen("php://stdin","r");
+$songcount = 0;
+
+createFifo($mplayerfifo);
+# Start up mplayer, which will idle in the background
+startMplayer();
+
+$artists_arr = getArtists();
+
+while (1) {
+  $isDir = true;
+  printArtists($artists_arr);
+  echo "Please input an artist number: ";
+  $artist_index = trim(fgets($inputHandle));
+  $mdirid = $artists_arr[$artist_index]['id'];
+
+  while ($isDir)
+  {
+    $mdir_arr = getMusicDir($mdirid);
+    echo "Please input an album number: ";
+    $album_index = trim(fgets($inputHandle));
+
+    $isDir = $mdir_arr[$album_index]['isDir'];
+    if ($isDir == 'true')
+      $isDir = true;
+    else
+      $isDir = false;
+
+    $mdirid = $mdir_arr[$album_index]['id'];
+  } 
+  loadSong($mdirid);
+
+}
+
+?>

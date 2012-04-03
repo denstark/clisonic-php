@@ -1,0 +1,11 @@
+<?php
+$server = 'myserver';
+$port = 443;
+$username = 'myuser';
+$password = 'mypassword';
+// Method can be http or https
+$method = 'http';
+$mplayerfifo = '/tmp/clisonic.fifo';
+$mp3dir = '/tmp';
+$cachesize = 500; # Song cache size in KB
+?>
