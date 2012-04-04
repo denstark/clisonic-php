@@ -150,5 +150,59 @@ function clearQueue()
   exec("echo 'stop' >> $mplayerfifo");
 } // clearQueue function
 
+function viewQueue() 
+{
+  global $shmem, $stdio;
+  system('clear');
+  $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
+  $currentPos = shm_get_var($shmem, SHM_CQ_POS_KEY);
+  if (!is_array($queue))
+  {
+    echo "Nothing in the queue!\n";
+    return;
+  }
+  $count = 0;
+  foreach ($queue as $entry)
+  {
+    if ($count == $currentPos)
+      echo "*";
+    echo $count . ": ";
+    echo $entry['title'] . " - " . $entry['album'] . "\n";
+    $count++;
+  }
+  echo "\nPress Enter to return to the menu.\n";
+  $blah = trim(fgets($stdio));
+} // viewQueue function
+
+function pauseSong()
+{
+  global $shmem, $mplayerfifo;
+  $isPaused = shm_get_var($shmem, SHM_ISPAUSED_KEY);
+  $isPaused = !$isPaused;
+  exec("echo 'pause' >> $mplayerfifo");
+  shm_put_var($shmem, SHM_ISPAUSED_KEY, $isPaused);
+} // pauseSong function
+
+function nextSong()
+{
+  global $shmem;
+  $timeLeft = 0;
+  shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+} // nextSong function
+
+function prevSong()
+{
+  global $shmem;
+  $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
+  $currentPos = shm_get_var($shmem, SHM_CQ_POS_KEY);
+  $queue[$currentPos - 1]['p'] = 0;
+  $queue[$currentPos]['p'] = 0;
+  $currentPos--;
+  shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
+  shm_put_var($shmem, SHM_CQ_POS_KEY, $currentPos);
+  $timeLeft = 0;
+  shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+
+} // prevSong function
 
 ?>

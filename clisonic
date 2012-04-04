@@ -19,6 +19,8 @@ $queue = null;
 shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
 $timeLeft = 0;
 shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+$isPaused = false;
+shm_put_var($shmem, SHM_ISPAUSED_KEY, $isPaused);
 // Launch helper program.
 exec('./helper > /tmp/helperout 2>&1 &');
 
@@ -27,7 +29,7 @@ $artists_arr = getArtists();
 
 while (1) 
 {
-  exec('clear');
+  system('clear');
   echo "##############################\n";
   echo "#     clisonic main menu     #\n";
   echo "##############################\n";
@@ -35,6 +37,9 @@ while (1)
   echo "1: Add Song/Album\n";
   echo "2: View Queue\n";
   echo "3: Clear Queue\n";
+  echo "u: Pause/Unpause\n";
+  echo "n: Next\n";
+  echo "p: Prev\n";
   echo "q: Quit\n";
 
   echo "Enter your choice: ";
@@ -48,10 +53,19 @@ while (1)
       addToQueue();
       break;
     case 2:
-      // viewQueue();
+      viewQueue();
       break;
     case 3:
       clearQueue();
+      break;
+    case 'u':
+      pauseSong();
+      break;
+    case 'n':
+      nextSong();
+      break;
+    case 'p':
+      prevSong();
       break;
     case 'q':
       shm_remove($shmem);

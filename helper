@@ -20,6 +20,7 @@ while($kg)
   $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
   if ( is_array($queue) && ($timeLeft <= $bufferTime) )
   {
+    $count = 0;
     foreach ($queue as &$entry)
     {
       $p = ($entry['p'] == 0); // If $entry['p'] is 0, then it is false and has not been processed yet
@@ -28,10 +29,13 @@ while($kg)
         loadSong($entry['id']);
         $timeLeft = $entry['duration'];
         shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+        $currentPos = $count;
+        shm_put_var($shmem, SHM_CQ_POS_KEY, $currentPos);
         echo "Processing entry!\n";
         $entry['p'] = 1;
         break 1;
       }
+      $count++;
     }
   }
   shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
@@ -42,7 +46,9 @@ while($kg)
 
   sleep(1);
   $timeLeft = shm_get_var($shmem, SHM_TIMELEFT_KEY);
-  $timeLeft--;
+  $isPaused = shm_get_var($shmem, SHM_ISPAUSED_KEY);
+  if (!$isPaused)
+    $timeLeft--;
   shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
   echo "timeleft: $timeLeft\n";
   $mainpid = shm_get_var($shmem, SHM_PID_KEY);
