@@ -25,6 +25,8 @@ $stdio = fopen("php://stdin","r");
 // Constants
 define("SHM_KEY", "55555");
 define("SHM_QUEUE_KEY", "20000");
-define("SHM_PID_KEY", "20010");
-define("SHM_TIMELEFT_KEY", "20020");
+define("SHM_PID_KEY", "20500");
+define("SHM_TIMELEFT_KEY", "20600");
+define("SHM_CQ_POS_KEY", "20700");
+define("SHM_ISPAUSED_KEY", "20800");
 ?>
