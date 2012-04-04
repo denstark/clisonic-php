@@ -1,0 +1,54 @@
+#!/usr/bin/php
+<?php
+require('settings.inc.php');
+require('functions.php');
+
+// Shared Memory Setup
+$shmem = shm_attach(SHM_KEY);
+
+
+createFifo($mplayerfifo);
+startMplayer();
+
+
+$timeLeft = 0;
+
+$kg = true;
+
+while($kg) 
+{
+  $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
+  if ( is_array($queue) && ($timeLeft <= $bufferTime) )
+  {
+    foreach ($queue as &$entry)
+    {
+      $p = ($entry['p'] == 0); // If $entry['p'] is 0, then it is false and has not been processed yet
+      if ($p) { // Since it's false, we process it
+        $id = $entry['id'];
+        loadSong($entry['id']);
+        $timeLeft = $entry['duration'];
+        shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+        echo "Processing entry!\n";
+        $entry['p'] = 1;
+        break 1;
+      }
+    }
+  }
+  shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
+
+
+
+
+
+  sleep(1);
+  $timeLeft = shm_get_var($shmem, SHM_TIMELEFT_KEY);
+  $timeLeft--;
+  shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+  echo "timeleft: $timeLeft\n";
+  $mainpid = shm_get_var($shmem, SHM_PID_KEY);
+  system("ps -p $mainpid > /dev/null", $retval);
+  $kg = ($retval == 0);
+
+}
+
+?>

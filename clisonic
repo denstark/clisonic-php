@@ -1,43 +1,66 @@
 #!/usr/bin/php
 <?php
-# Config file is required
+// Config file is required
 require('settings.inc.php');
 require('functions.php');
-$app = 'clisonic-php';
-$apiver = '1.7.0';
-$baseurl = "$method://$server:$port/rest";
-$dopts = "?u=$username&p=$password&v=$apiver&c=$app";
-$inputHandle = fopen("php://stdin","r");
+
+
+
 $songcount = 0;
 
-createFifo($mplayerfifo);
-# Start up mplayer, which will idle in the background
-startMplayer();
+// Shared Memory Setup
+$shmem = shm_attach(SHM_KEY);
+
+// Get Current PID and put in shared mem (For the helper program)
+$mainpid = getmypid();
+shm_put_var($shmem, SHM_PID_KEY, $mainpid);
+// Set the queue to null in case anything is still around from last run.
+$queue = null;
+shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
+$timeLeft = 0;
+shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+// Launch helper program.
+exec('./helper > /tmp/helperout 2>&1 &');
+
 
 $artists_arr = getArtists();
 
-while (1) {
-  $isDir = true;
-  printArtists($artists_arr);
-  echo "Please input an artist number: ";
-  $artist_index = trim(fgets($inputHandle));
-  $mdirid = $artists_arr[$artist_index]['id'];
+while (1) 
+{
+  exec('clear');
+  echo "##############################\n";
+  echo "#     clisonic main menu     #\n";
+  echo "##############################\n";
+  echo "\n";
+  echo "1: Add Song/Album\n";
+  echo "2: View Queue\n";
+  echo "3: Clear Queue\n";
+  echo "q: Quit\n";
 
-  while ($isDir)
+  echo "Enter your choice: ";
+
+  $choice = trim(fgets($stdio));
+
+
+  switch ($choice)
   {
-    $mdir_arr = getMusicDir($mdirid);
-    echo "Please input an album number: ";
-    $album_index = trim(fgets($inputHandle));
-
-    $isDir = $mdir_arr[$album_index]['isDir'];
-    if ($isDir == 'true')
-      $isDir = true;
-    else
-      $isDir = false;
-
-    $mdirid = $mdir_arr[$album_index]['id'];
-  } 
-  loadSong($mdirid);
+    case 1:
+      addToQueue();
+      break;
+    case 2:
+      // viewQueue();
+      break;
+    case 3:
+      clearQueue();
+      break;
+    case 'q':
+      shm_remove($shmem);
+      exit(0);
+      break;
+    default:
+      echo "I did not understand your command. Press enter to try again.";
+      fgets($stdio);
+  }
 
 }
 
