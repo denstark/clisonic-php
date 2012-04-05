@@ -5,28 +5,31 @@
  */
 class csPlayer
 {
+  private function __construct() {}
+  
   /**
    * Pause the current song
    */
-  function pause()
+  public static function pause()
   {
-    $isPaused = !csMemory::get(SHM_ISPAUSED_KEY, false);
-    exec("echo 'pause' >> {$this->getFifo()}");
+    $isPaused = !self::isPaused();
+    $fifo = self::getFifo();
+    exec("echo 'pause' >> {$fifo}");
     csMemory::set(SHM_ISPAUSED_KEY, $isPaused);
   }
 
   /**
    * Advance to the next song
    */
-  function next()
+  public static function next()
   {
-    csMemory::set(SHM_TIMELEFT_KEY, 0);
+    self::setTimeLeft(0);
   }
 
   /**
    * Return to the previous song
    */
-  function prev()
+  public static function prev()
   {
     $queue = csMemory::get(SHM_QUEUE_KEY);
     $currentPos = csMemory::get(SHM_CQ_POS_KEY);
@@ -37,7 +40,20 @@ class csPlayer
     
     csMemory::set(SHM_QUEUE_KEY, $queue);
     csMemory::set(SHM_CQ_POS_KEY, $currentPos);
-    csMemory::set(SHM_TIMELEFT_KEY, 0);
+    self::setTimeLeft(0);
+  }
+  
+  public static function setTimeLeft($val)
+  {
+    if (!is_numeric($val))
+      throw new Exception('Time left is not numeric');
+    
+    csMemory::set(SHM_TIMELEFT_KEY, $val);
+  }
+  
+  public static function isPaused()
+  {
+    return csMemory::get(SHM_ISPAUSED_KEY, false);
   }
   
   /**
@@ -46,7 +62,7 @@ class csPlayer
    * @global String $mplayerfifo
    * @return String 
    */
-  private function getFifo()
+  private static function getFifo()
   {
     global $mplayerfifo;
     return $mplayerfifo;
