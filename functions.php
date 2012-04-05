@@ -1,18 +1,4 @@
 <?php
-function createFifo($mplayerfifo) 
-{
-  if (file_exists($mplayerfifo))
-  {
-    exec("rm -f $mplayerfifo");
-  }
-  exec("mkfifo $mplayerfifo");
-} // createFifo function
-
-function startMplayer()
-{
-  global $mplayerfifo, $cachesize;
-  exec("mplayer -really-quiet -cache $cachesize -slave -input file=$mplayerfifo -idle > /dev/null 2>&1 &", $output);
-} // startMplayer function
 
 function getArtists()
 {

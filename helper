@@ -1,5 +1,6 @@
 #!/usr/bin/php
 <?php
+
 require('settings.inc.php');
 require('functions.php');
 
@@ -9,10 +10,7 @@ require_once('lib/memory/base.memory.php');
 require_once('lib/memory.class.php');
 require_once('lib/memory/memcache.memory.php');
 
-
-createFifo($mplayerfifo);
-startMplayer();
-
+csPlayer::init($mplayerfifo, $cachesize);
 
 $timeLeft = 0;
 
@@ -31,7 +29,7 @@ while($kg)
         $id = $entry['id'];
         loadSong($entry['id']);
         $timeLeft = $entry['duration'];
-        csMemory::set(SHM_TIMELEFT_KEY, $timeLeft);
+        csPlayer::setTimeLeft($timeLeft);
         $currentPos = $count;
         csMemory::set(SHM_CQ_POS_KEY, $currentPos);
         echo "Processing entry!\n";
@@ -45,10 +43,10 @@ while($kg)
 
   sleep(1);
   $timeLeft = csMemory::get(SHM_TIMELEFT_KEY);
-  $isPaused = csMemory::get(SHM_ISPAUSED_KEY);
+  $isPaused = csPlayer::isPaused();
   if (!$isPaused)
     $timeLeft--;
-  csMemory::set(SHM_TIMELEFT_KEY, $timeLeft);
+  csPlayer::setTimeLeft($timeLeft);
   echo "timeleft: $timeLeft\n";
   $mainpid = csMemory::get(SHM_PID_KEY);
   system("ps -p $mainpid > /dev/null", $retval);

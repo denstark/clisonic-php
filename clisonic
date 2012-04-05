@@ -20,12 +20,12 @@ csMemory::set(SHM_PID_KEY, $mainpid);
 
 // Set the queue to null in case anything is still around from last run.
 csMemory::set(SHM_QUEUE_KEY, null);
-csMemory::set(SHM_TIMELEFT_KEY, 0);
-csMemory::set(SHM_ISPAUSED_KEY, false);
+csPlayer::setTimeLeft(0);
+csPlayer::resetPause();
 
 // Launch helper program.
 exec('./helper > /tmp/helperout 2>&1 &');
-
+csPlayer::setFifo($mplayerfifo);
 
 $artists_arr = getArtists();
 

@@ -5,7 +5,33 @@
  */
 class csPlayer
 {
+  private static $fifo;
+  
   private function __construct() {}
+  
+  public static function init($mplayerfifo, $cachesize)
+  {
+    self::$fifo = $mplayerfifo;
+    self::createFifo();
+    self::start($cachesize);
+  }
+  
+  private static function createFifo() 
+  {
+    $fifo = self::$fifo;
+    
+    if (file_exists($fifo))
+    {
+      exec("rm -f $fifo");
+    }
+    exec("mkfifo $fifo");
+  }
+
+  private static function start($cachesize)
+  {
+    $fifo = self::$fifo;
+    exec("mplayer -really-quiet -cache $cachesize -slave -input file=$fifo -idle > /dev/null 2>&1 &", $output);
+  }
   
   /**
    * Pause the current song
@@ -13,9 +39,14 @@ class csPlayer
   public static function pause()
   {
     $isPaused = !self::isPaused();
-    $fifo = self::getFifo();
+    $fifo = self::$fifo;
     exec("echo 'pause' >> {$fifo}");
     csMemory::set(SHM_ISPAUSED_KEY, $isPaused);
+  }
+  
+  public static function resetPause()
+  {
+    csMemory::set(SHM_ISPAUSED_KEY, false);
   }
 
   /**
@@ -56,15 +87,13 @@ class csPlayer
     return csMemory::get(SHM_ISPAUSED_KEY, false);
   }
   
-  /**
-   * Get the path for mplayerfifo
-   * 
-   * @global String $mplayerfifo
-   * @return String 
-   */
-  private static function getFifo()
+  public static function getFifo()
   {
-    global $mplayerfifo;
-    return $mplayerfifo;
+    return self::$fifo;
+  }
+  
+  public static function setFifo($val)
+  {
+    self::$fifo = $val;
   }
 }
