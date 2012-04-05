@@ -3,8 +3,11 @@
 require('settings.inc.php');
 require('functions.php');
 
-// Shared Memory Setup
-$shmem = shm_attach(SHM_KEY);
+// Until an autoloader has been built
+require_once('lib/player.class.php');
+require_once('lib/memory/base.memory.php');
+require_once('lib/memory.class.php');
+require_once('lib/memory/memcache.memory.php');
 
 
 createFifo($mplayerfifo);
@@ -17,7 +20,7 @@ $kg = true;
 
 while($kg) 
 {
-  $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
+  $queue = csMemory::get(SHM_QUEUE_KEY);
   if ( is_array($queue) && ($timeLeft <= $bufferTime) )
   {
     $count = 0;
@@ -28,9 +31,9 @@ while($kg)
         $id = $entry['id'];
         loadSong($entry['id']);
         $timeLeft = $entry['duration'];
-        shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+        csMemory::set(SHM_TIMELEFT_KEY, $timeLeft);
         $currentPos = $count;
-        shm_put_var($shmem, SHM_CQ_POS_KEY, $currentPos);
+        csMemory::set(SHM_CQ_POS_KEY, $currentPos);
         echo "Processing entry!\n";
         $entry['p'] = 1;
         break 1;
@@ -38,23 +41,17 @@ while($kg)
       $count++;
     }
   }
-  shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
-
-
-
-
+  csMemory::set(SHM_QUEUE_KEY, $queue);
 
   sleep(1);
-  $timeLeft = shm_get_var($shmem, SHM_TIMELEFT_KEY);
-  $isPaused = shm_get_var($shmem, SHM_ISPAUSED_KEY);
+  $timeLeft = csMemory::get(SHM_TIMELEFT_KEY);
+  $isPaused = csMemory::get(SHM_ISPAUSED_KEY);
   if (!$isPaused)
     $timeLeft--;
-  shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+  csMemory::set(SHM_TIMELEFT_KEY, $timeLeft);
   echo "timeleft: $timeLeft\n";
-  $mainpid = shm_get_var($shmem, SHM_PID_KEY);
+  $mainpid = csMemory::get(SHM_PID_KEY);
   system("ps -p $mainpid > /dev/null", $retval);
   $kg = ($retval == 0);
 
 }
-
-?>

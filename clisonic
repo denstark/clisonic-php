@@ -1,33 +1,35 @@
 #!/usr/bin/php
 <?php
+
 // Config file is required
 require('settings.inc.php');
 require('functions.php');
 
+// Until an autoloader has been built
+require_once('lib/player.class.php');
+require_once('lib/memory/base.memory.php');
+require_once('lib/memory.class.php');
+require_once('lib/memory/memcache.memory.php');
 
 
 $songcount = 0;
 
-// Shared Memory Setup
-$shmem = shm_attach(SHM_KEY);
-
 // Get Current PID and put in shared mem (For the helper program)
 $mainpid = getmypid();
-shm_put_var($shmem, SHM_PID_KEY, $mainpid);
+csMemory::set(SHM_PID_KEY, $mainpid);
+
 // Set the queue to null in case anything is still around from last run.
-$queue = null;
-shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
-$timeLeft = 0;
-shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
-$isPaused = false;
-shm_put_var($shmem, SHM_ISPAUSED_KEY, $isPaused);
+csMemory::set(SHM_QUEUE_KEY, null);
+csMemory::set(SHM_TIMELEFT_KEY, 0);
+csMemory::set(SHM_ISPAUSED_KEY, false);
+
 // Launch helper program.
 exec('./helper > /tmp/helperout 2>&1 &');
 
 
 $artists_arr = getArtists();
 
-while (1) 
+while (true) 
 {
   system('clear');
   echo "##############################\n";
@@ -59,16 +61,16 @@ while (1)
       clearQueue();
       break;
     case 'u':
-      pauseSong();
+      csPlayer::pause();
       break;
     case 'n':
-      nextSong();
+      csPlayer::next();
       break;
     case 'p':
-      prevSong();
+      csPlayer::prev();
       break;
     case 'q':
-      shm_remove($shmem);
+      csMemory::cleanUp();
       exit(0);
       break;
     default:
@@ -77,5 +79,3 @@ while (1)
   }
 
 }
-
-?>

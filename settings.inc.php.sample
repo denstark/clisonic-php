@@ -1,4 +1,5 @@
 <?php
+
 $server = 'myserver.net';
 $port = 443;
 $username = 'myuser';
@@ -11,11 +12,6 @@ $cachesize = 500; //  Song cache size in KB
 $bufferTime = 0; // Time before a song ends to buffer the next one
 // Leave $bufferTime at 0 for now, as it will break things if you change it
 
-
-
-
-
-
 $app = 'clisonic-php';
 $apiver = '1.7.0';
 $baseurl = "$method://$server:$port/rest";
@@ -23,10 +19,14 @@ $dopts = "?u=$username&p=$password&v=$apiver&c=$app";
 $stdio = fopen("php://stdin","r");
 
 // Constants
+
+// csMemcache, csSHM, csMsgQueue
+define('MEMORY_CLASS', '\memory\csMemcache');
+// define('MEMCACHE_PORT', 11211);
+
 define("SHM_KEY", "55555");
 define("SHM_QUEUE_KEY", "20000");
 define("SHM_PID_KEY", "20500");
 define("SHM_TIMELEFT_KEY", "20600");
 define("SHM_CQ_POS_KEY", "20700");
 define("SHM_ISPAUSED_KEY", "20800");
-?>

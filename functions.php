@@ -105,7 +105,7 @@ function loadSong($id)
 
 function addToQueue()
 {
-  global $artists_arr, $stdio, $queue, $shmem;
+  global $artists_arr, $stdio, $queue;
   $isDir = true;
   printArtists($artists_arr);
   echo "Please input an artist number: ";
@@ -119,10 +119,11 @@ function addToQueue()
     $album_index = trim(fgets($stdio));
     if ( strtolower($album_index) == 'a')
     {
-      $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
+      $queue = csMemory::get(SHM_QUEUE_KEY);
       foreach ($entries_arr as $entry)
         $queue[] = $entry;
-      shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
+      
+      csMemory::set(SHM_QUEUE_KEY, $queue);
       break 1;
     } 
     $isDir = $entries_arr[$album_index]['isDir'];
@@ -132,9 +133,9 @@ function addToQueue()
   // queue
   if (strtolower($album_index) != 'a')
   {
-    $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
+    $queue = csMemory::get(SHM_QUEUE_KEY);
     $queue[] = $entries_arr[$album_index];
-    shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
+    csMemory::set(SHM_QUEUE_KEY, $queue);
   }
   // loadSong($mdirid);
 
@@ -142,20 +143,21 @@ function addToQueue()
 
 function clearQueue()
 {
-  global $shmem, $queue, $mplayerfifo;
-  $queue = array();
-  shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
-  $timeLeft = 0;
-  shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
+  global $queue, $mplayerfifo;
+  
+  csMemory::set(SHM_QUEUE_KEY, array());
+  csMemory::set(SHM_TIMELEFT_KEY, 0);
+  
   exec("echo 'stop' >> $mplayerfifo");
 } // clearQueue function
 
 function viewQueue() 
 {
-  global $shmem, $stdio;
+  global $stdio;
   system('clear');
-  $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
-  $currentPos = shm_get_var($shmem, SHM_CQ_POS_KEY);
+  
+  $queue = csMemory::get(SHM_QUEUE_KEY);
+  $currentPos = csMemory::get(SHM_CQ_POS_KEY);
   if (!is_array($queue))
   {
     echo "Nothing in the queue!\n";
@@ -173,36 +175,3 @@ function viewQueue()
   echo "\nPress Enter to return to the menu.\n";
   $blah = trim(fgets($stdio));
 } // viewQueue function
-
-function pauseSong()
-{
-  global $shmem, $mplayerfifo;
-  $isPaused = shm_get_var($shmem, SHM_ISPAUSED_KEY);
-  $isPaused = !$isPaused;
-  exec("echo 'pause' >> $mplayerfifo");
-  shm_put_var($shmem, SHM_ISPAUSED_KEY, $isPaused);
-} // pauseSong function
-
-function nextSong()
-{
-  global $shmem;
-  $timeLeft = 0;
-  shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
-} // nextSong function
-
-function prevSong()
-{
-  global $shmem;
-  $queue = shm_get_var($shmem, SHM_QUEUE_KEY);
-  $currentPos = shm_get_var($shmem, SHM_CQ_POS_KEY);
-  $queue[$currentPos - 1]['p'] = 0;
-  $queue[$currentPos]['p'] = 0;
-  $currentPos--;
-  shm_put_var($shmem, SHM_QUEUE_KEY, $queue);
-  shm_put_var($shmem, SHM_CQ_POS_KEY, $currentPos);
-  $timeLeft = 0;
-  shm_put_var($shmem, SHM_TIMELEFT_KEY, $timeLeft);
-
-} // prevSong function
-
-?>
