@@ -62,15 +62,15 @@ class csPlayer
    */
   public static function prev()
   {
-    $queue = csMemory::get(SHM_QUEUE_KEY);
-    $currentPos = csMemory::get(SHM_CQ_POS_KEY);
+    $queue = csQueue::get();
+    $currentPos = csQueue::getPos();
     
     $queue[$currentPos - 1]['p'] = 0;
     $queue[$currentPos]['p'] = 0;
     $currentPos--;
     
-    csMemory::set(SHM_QUEUE_KEY, $queue);
-    csMemory::set(SHM_CQ_POS_KEY, $currentPos);
+    csQueue::set($queue);
+    csQueue::setPos($currentPos);
     self::setTimeLeft(0);
   }
   
@@ -80,6 +80,11 @@ class csPlayer
       throw new Exception('Time left is not numeric');
     
     csMemory::set(SHM_TIMELEFT_KEY, $val);
+  }
+  
+  public static function getTimeLeft()
+  {
+    return csMemory::get(SHM_TIMELEFT_KEY);
   }
   
   public static function isPaused()
@@ -95,5 +100,28 @@ class csPlayer
   public static function setFifo($val)
   {
     self::$fifo = $val;
+  }
+  
+  public static function loadSong($id)
+  {
+    $mp3file = csFetch::getSong($id);
+    $fifo = self::$fifo;
+    
+    sleep(1);
+    system('pgrep -f ".*mplayer.*clisonic.*"', $isrunning);
+    
+    if ($isrunning == 0)
+    {
+      // Mplayer is running
+      // system("echo 'loadfile $mp3file $songcount' >> $mplayerfifo"); // 
+      // Needs to be reimplemented when I figure out a solution to queuing from 
+      // $x seconds behind the current song
+      system("echo 'loadfile $mp3file' >> $fifo");
+      // $songcount++;
+    }
+    else 
+    {
+      throw new Exception('Mplayer is not runnning');
+    }
   }
 }

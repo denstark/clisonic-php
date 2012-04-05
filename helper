@@ -1,55 +1,52 @@
 #!/usr/bin/php
 <?php
 
-require('settings.inc.php');
-require('functions.php');
-
-// Until an autoloader has been built
-require_once('lib/player.class.php');
-require_once('lib/memory/base.memory.php');
-require_once('lib/memory.class.php');
-require_once('lib/memory/memcache.memory.php');
+require_once('initialize.php');
 
 csPlayer::init($mplayerfifo, $cachesize);
 
+$mainpid = csMemory::get(SHM_PID_KEY);
 $timeLeft = 0;
 
 $kg = true;
 
-while($kg) 
+while ($kg) 
 {
-  $queue = csMemory::get(SHM_QUEUE_KEY);
-  if ( is_array($queue) && ($timeLeft <= $bufferTime) )
+  // should we be loading the next song?
+  if ($timeLeft <= $bufferTime)
   {
-    $count = 0;
-    foreach ($queue as &$entry)
+    // update the queue
+    $queue = csQueue::get();
+    
+    foreach ($queue as $key => &$entry)
     {
-      $p = ($entry['p'] == 0); // If $entry['p'] is 0, then it is false and has not been processed yet
-      if ($p) { // Since it's false, we process it
-        $id = $entry['id'];
-        loadSong($entry['id']);
-        $timeLeft = $entry['duration'];
-        csPlayer::setTimeLeft($timeLeft);
-        $currentPos = $count;
-        csMemory::set(SHM_CQ_POS_KEY, $currentPos);
+      // find the first unprocessed entry in the queue
+      if (!$entry->wasProcessed())
+      {
+        $id = $entry->getId();
+        csPlayer::loadSong($id);
+        csPlayer::setTimeLeft($entry->getDuration());
+        csQueue::setPos($key);
         echo "Processing entry!\n";
-        $entry['p'] = 1;
-        break 1;
+        $entry->setProcessed(true);
+        break;
       }
-      $count++;
     }
   }
-  csMemory::set(SHM_QUEUE_KEY, $queue);
+  
+  csQueue::set($queue);
 
   sleep(1);
-  $timeLeft = csMemory::get(SHM_TIMELEFT_KEY);
+  $timeLeft = csPlayer::getTimeLeft();  
   $isPaused = csPlayer::isPaused();
+  
   if (!$isPaused)
     $timeLeft--;
+  
   csPlayer::setTimeLeft($timeLeft);
   echo "timeleft: $timeLeft\n";
-  $mainpid = csMemory::get(SHM_PID_KEY);
+  
   system("ps -p $mainpid > /dev/null", $retval);
+  
   $kg = ($retval == 0);
-
 }

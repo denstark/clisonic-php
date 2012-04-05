@@ -1,25 +1,14 @@
 #!/usr/bin/php
 <?php
 
-// Config file is required
-require('settings.inc.php');
-require('functions.php');
-
-// Until an autoloader has been built
-require_once('lib/player.class.php');
-require_once('lib/memory/base.memory.php');
-require_once('lib/memory.class.php');
-require_once('lib/memory/memcache.memory.php');
-
-
-$songcount = 0;
+require_once('initialize.php');
 
 // Get Current PID and put in shared mem (For the helper program)
 $mainpid = getmypid();
 csMemory::set(SHM_PID_KEY, $mainpid);
 
 // Set the queue to null in case anything is still around from last run.
-csMemory::set(SHM_QUEUE_KEY, null);
+csQueue::set(array());
 csPlayer::setTimeLeft(0);
 csPlayer::resetPause();
 
@@ -27,55 +16,7 @@ csPlayer::resetPause();
 exec('./helper > /tmp/helperout 2>&1 &');
 csPlayer::setFifo($mplayerfifo);
 
-$artists_arr = getArtists();
-
 while (true) 
 {
-  system('clear');
-  echo "##############################\n";
-  echo "#     clisonic main menu     #\n";
-  echo "##############################\n";
-  echo "\n";
-  echo "1: Add Song/Album\n";
-  echo "2: View Queue\n";
-  echo "3: Clear Queue\n";
-  echo "u: Pause/Unpause\n";
-  echo "n: Next\n";
-  echo "p: Prev\n";
-  echo "q: Quit\n";
-
-  echo "Enter your choice: ";
-
-  $choice = trim(fgets($stdio));
-
-
-  switch ($choice)
-  {
-    case 1:
-      addToQueue();
-      break;
-    case 2:
-      viewQueue();
-      break;
-    case 3:
-      clearQueue();
-      break;
-    case 'u':
-      csPlayer::pause();
-      break;
-    case 'n':
-      csPlayer::next();
-      break;
-    case 'p':
-      csPlayer::prev();
-      break;
-    case 'q':
-      csMemory::cleanUp();
-      exit(0);
-      break;
-    default:
-      echo "I did not understand your command. Press enter to try again.";
-      fgets($stdio);
-  }
-
+  csController::go($stdio);
 }
