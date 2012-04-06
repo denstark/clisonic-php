@@ -23,8 +23,7 @@ while ($kg)
       // find the first unprocessed entry in the queue
       if (!$entry->wasProcessed())
       {
-        $id = $entry->getId();
-        csPlayer::loadSong($id);
+        csPlayer::loadSong($entry);
         csPlayer::setTimeLeft($entry->getDuration());
         csQueue::setPos($key);
         echo "Processing entry!\n";
