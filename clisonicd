@@ -29,25 +29,28 @@ while ($kg)
     }
   }
   
-  $timeLeft = $player->getTimeLeft();
-
-  // should we be loading the next song?
-  if ($timeLeft <= $bufferTime)
+  if (!$player->isPaused())
   {
-    // update the queue
-    $queue = csQueue::get();
-    $entries = $queue->getEntries();
-    
-    foreach ($entries as $key => $entry)
+    $timeLeft = $player->getTimeLeft();
+
+    // should we be loading the next song?
+    if ($timeLeft <= $bufferTime)
     {
-      // find the first unprocessed entry in the queue
-      if (!$entry->wasProcessed())
+      // update the queue
+      $queue = csQueue::get();
+      $entries = $queue->getEntries();
+
+      foreach ($entries as $key => $entry)
       {
-        $player->loadSong($entry);
-        echo "Processing entry!\n";
-        $queue->processEntry($key);
-        $queue->setPos($key);
-        break;
+        // find the first unprocessed entry in the queue
+        if (!$entry->wasProcessed())
+        {
+          $player->loadSong($entry);
+          echo "Processing entry!\n";
+          $queue->processEntry($key);
+          $queue->setPos($key);
+          break;
+        }
       }
     }
   }
