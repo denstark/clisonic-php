@@ -65,8 +65,12 @@ class csPlayer
     $queue = csQueue::get();
     $currentPos = csQueue::getPos();
     
-    $queue[$currentPos - 1]['p'] = 0;
-    $queue[$currentPos]['p'] = 0;
+    if (isset($queue[$currentPos - 1]))
+      $queue[$currentPos - 1]->setProcessed(false);
+    
+    if (isset($queue[$currentPos]))
+      $queue[$currentPos]->setProcessed(false);
+    
     $currentPos--;
     
     csQueue::set($queue);
