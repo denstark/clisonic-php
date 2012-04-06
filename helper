@@ -29,12 +29,11 @@ while ($kg)
         csQueue::setPos($key);
         echo "Processing entry!\n";
         $entry->setProcessed(true);
+        csQueue::set($queue);
         break;
       }
     }
   }
-  
-  csQueue::set($queue);
 
   sleep(1);
   $timeLeft = csPlayer::getTimeLeft();  
