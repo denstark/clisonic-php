@@ -1,0 +1,57 @@
+#!/usr/bin/php
+<?php
+
+$script = 'daemon';
+require_once('initialize.php');
+
+$player = new csPlayer($mplayerfifo, $cachesize);
+
+$kg = true;
+
+while ($kg) 
+{
+  // what's in the message queue?
+  while ($msg = csMsgQueue::getNext())
+  {
+    echo "Received message: $msg\n";
+    
+    $msg = trim($msg);
+    
+    switch ($msg)
+    {
+      case 'pause':
+        echo "Pausing player\n";
+        $player->pause();
+        break;
+      case 'stop':
+        exit;
+        break;
+    }
+  }
+  
+  $timeLeft = $player->getTimeLeft();
+
+  // should we be loading the next song?
+  if ($timeLeft <= $bufferTime)
+  {
+    // update the queue
+    $queue = csQueue::get();
+    $entries = $queue->getEntries();
+    
+    foreach ($entries as $key => $entry)
+    {
+      // find the first unprocessed entry in the queue
+      if (!$entry->wasProcessed())
+      {
+        $player->loadSong($entry);
+        echo "Processing entry!\n";
+        $queue->processEntry($key);
+        $queue->setPos($key);
+        break;
+      }
+    }
+  }
+  
+  echo "timeleft: $timeLeft\n";
+  sleep(1);
+}

@@ -1,22 +1,25 @@
 #!/usr/bin/php
 <?php
 
+$script = 'controller';
 require_once('initialize.php');
 
-// Get Current PID and put in shared mem (For the helper program)
-$mainpid = getmypid();
-csMemory::set(SHM_PID_KEY, $mainpid);
+$action = isset($argv[1]) ? $argv[1] : 'browse';
 
-// Set the queue to null in case anything is still around from last run.
-csQueue::set(array());
-csPlayer::setTimeLeft(0);
-csPlayer::resetPause();
+array_shift($argv); // pull off the script name
+array_shift($argv); // pull off the action
 
-// Launch helper program.
-exec('./helper > /tmp/helperout 2>&1 &');
-csPlayer::setFifo($mplayerfifo);
+// Launch daemon if it isn't already running
+exec('ps -C clisonicd', $output, $notRunning);
 
-while (true) 
+if ($notRunning)
+  exec('./clisonicd > /tmp/clisonic.out 2>&1 &');
+
+try
 {
-  csController::go($stdio);
+  csController::go($action, $argv);
+}
+catch (Exception $ex)
+{
+  echo "Error: {$ex->getMessage()}\n";
 }

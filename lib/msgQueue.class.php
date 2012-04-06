@@ -3,37 +3,25 @@
 /**
  * Class for managing shared memory
  */
-class csMemory extends \memory\csBaseMemory
+class csMsgQueue extends \msgQueue\csBase
 {
-  const DEFAULT_CLASS = '\memory\csMsgQueue';
+  const DEFAULT_CLASS = '\msgQueue\csMsgQueue';
   
   private static $className;
   
   // Singleton constructor
   private function __construct() { }
   
-  /**
-   * Retrieve a value from memory
-   * 
-   * @param String $key
-   * @return Mixed
-   */
-  public static function get($key, $default = null)
+  public static function queueMsg($msg)
   {
     $class = self::getClass();
-    return $class::get($key, $default);
+    return $class::queueMsg($msg);
   }
   
-  /**
-   * Put a value into memory with the provided key
-   * 
-   * @param String $key
-   * @param Mixed $value 
-   */
-  public static function set($key, $value)
+  public static function getNext()
   {
     $class = self::getClass();
-    return $class::set($key, $value);
+    return $class::getNext();
   }
   
   public static function cleanUp()

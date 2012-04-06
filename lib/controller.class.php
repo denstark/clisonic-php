@@ -2,63 +2,25 @@
 
 class csController
 {
-  public static function go($stdio)
+  public static function go($action, $arguments = array())
   {
-    system('clear');
-    
-    $menuOpts = array(
-      '1: Add Song/Album',
-      '2: View Queue',
-      '3: Clear Queue',
-      'u: Pause/Unpause',
-      'n: Next',
-      'p: Prev',
-      'q: Quit',
-    );
-    
-    $menuTxt = join("\n", $menuOpts);
-
-    $menu = <<<TXT
-##############################
-#     clisonic main menu     #
-##############################
-
-{$menuTxt}
-
-Enter your choice: 
-TXT;
-    
-    echo $menu;
-
-    $choice = trim(fgets($stdio));
-
-    switch ($choice)
+    switch ($action)
     {
-      case 1:
-        csController::browse();
+      case 'browse':
+      case '-b':
+        self::browse();
         break;
-      case 2:
-        csController::viewQueue();
+      case 'view':
+      case '-v':
+        self::viewQueue();
         break;
-      case 3:
+      case 'clear':
+      case '-c':
         csQueue::clear();
         break;
-      case 'u':
-        csPlayer::pause();
-        break;
-      case 'n':
-        csPlayer::next();
-        break;
-      case 'p':
-        csPlayer::prev();
-        break;
-      case 'q':
-        csMemory::cleanUp();
-        exit(0);
-        break;
       default:
-        echo "I did not understand your command. Press enter to try again.";
-        fgets($stdio);
+        csMsgQueue::queueMsg($action);
+        break;
     }
   }
   
@@ -119,7 +81,7 @@ TXT;
             
       if (strtolower($albumIndex) == 'a')
       {
-        csQueue::add($entries);
+        csQueue::get()->add($entries);
         return;
       }
       
@@ -135,24 +97,22 @@ TXT;
     
     // We now are broken out of the selection loop and need to add the song to the 
     // queue
-    csQueue::add($entries[$albumIndex]);
+    csQueue::get()->add($entries[$albumIndex]);
   }
   
   public static function viewQueue() 
   {
-    global $stdio;
-    system('clear');
-
     $queue = csQueue::get();
-    $currentPos = csQueue::getPos();
-
-    if (!is_array($queue))
+    $currentPos = $queue->getPos();
+    $entries = $queue->getEntries();
+    
+    if (!count($entries))
     {
       echo "Nothing in the queue!\n";
     }
     else
     {
-      foreach ($queue as $key => $entry)
+      foreach ($entries as $key => $entry)
       {
         if ($key == $currentPos)
           echo "*";
@@ -161,8 +121,5 @@ TXT;
         echo $entry->getTitle() . " - " . $entry->getAlbum('Unknown Album') . "\n";
       }
     }
-    
-    echo "\nPress Enter to return to the menu.\n";
-    $blah = trim(fgets($stdio));
   }
 }

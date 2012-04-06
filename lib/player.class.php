@@ -5,55 +5,50 @@
  */
 class csPlayer
 {
-  private static $fifo;
-  private static $currentSong;
+  private $fifo;
+  private $paused = false;
+  private $currentSong;
   
-  private function __construct() {}
-  
-  public static function init($mplayerfifo, $cachesize)
+  public function __construct($mplayerfifo, $cachesize)
   {
-    self::$fifo = $mplayerfifo;
-    self::createFifo();
-    self::start($cachesize);
+    $this->fifo = $mplayerfifo;
+    $this->createFifo();
+    $this->start($cachesize);
   }
   
-  private static function createFifo() 
+  private function createFifo() 
   {
-    $fifo = self::$fifo;
-    
-    if (file_exists($fifo))
+    if (file_exists($this->fifo))
     {
-      exec("rm -f $fifo");
+      exec("rm -f {$this->fifo}");
     }
-    exec("mkfifo $fifo");
+    exec("mkfifo {$this->fifo}");
   }
 
-  private static function start($cachesize)
+  private function start($cachesize)
   {
-    $fifo = self::$fifo;
-    exec("mplayer -quiet -cache $cachesize -slave -input file=$fifo -idle > /tmp/clisonic-mplayer 2>&1 &", $output);
+    exec("mplayer -quiet -cache $cachesize -slave -input file={$this->fifo} -idle > /tmp/clisonic-mplayer 2>&1 &", $output);
   }
   
   /**
    * Pause the current song
    */
-  public static function pause()
+  public function pause()
   {
-    $isPaused = !self::isPaused();
-    $fifo = self::$fifo;
-    exec("echo 'pause' >> {$fifo}");
-    csMemory::set(SHM_ISPAUSED_KEY, $isPaused);
+    $this->paused = !$this->paused;
+    echo "Sending pause request to fifo ({$this->fifo})\n";
+    $this->sendMsg('pause');
   }
   
-  public static function resetPause()
+  public function isPaused()
   {
-    csMemory::set(SHM_ISPAUSED_KEY, false);
+    return $this->paused;
   }
 
   /**
    * Advance to the next song
    */
-  public static function next()
+  public function next()
   {
     self::setTimeLeft(0);
   }
@@ -61,7 +56,7 @@ class csPlayer
   /**
    * Return to the previous song
    */
-  public static function prev()
+  public function prev()
   {
     $queue = csQueue::get();
     $currentPos = csQueue::getPos();
@@ -78,77 +73,56 @@ class csPlayer
     csQueue::setPos($currentPos);
     self::setTimeLeft(0);
   }
-  
-  public static function setTimeLeft($val)
-  {
-    if (!is_numeric($val))
-      throw new Exception('Time left is not numeric');
     
-    csMemory::set(SHM_TIMELEFT_KEY, $val);
-  }
-  
-  public static function getTimePos()
+  public function getTimePos()
   {
-    $fifo = self::$fifo;
-    self::sendMsg('get_property time_pos');
+    $this->sendMsg('get_property time_pos');
+    
     $out = `tac /tmp/clisonic-mplayer | grep -m1 'ANS_time_pos\|Failed.*time_pos.*'`;
+    
     if (preg_match('/=(.*)/', $out, $matches))
       return ceil($matches[1]);
     else
       return 0;
-    // return csMemory::get(SHM_TIMELEFT_KEY);
   }
 
-  public static function getTimeLeft()
+  public function getTimeLeft()
   {
-
-    if (is_null(self::$currentSong))
+    if (is_null($this->currentSong))
       return 0;
 
-    return self::$currentSong->getDuration() - self::getTimePos();
+    return $this->currentSong->getDuration() - $this->getTimePos();
   }
 
-  public static function isPaused()
+  public function sendMsg($msg)
   {
-    return csMemory::get(SHM_ISPAUSED_KEY, false);
-  }
-  
-  public static function getFifo()
-  {
-    return self::$fifo;
-  }
-
-  public static function sendMsg($msg)
-  {
-    $fifo = self::$fifo;
     if (empty($msg))
       throw new Exception('No message to send');
 
-    exec("echo '$msg' >> $fifo");
+    exec("echo '$msg' >> {$this->fifo}");
   }
   
-  public static function setFifo($val)
+  public function getFifo()
   {
-    self::$fifo = $val;
+    return $this->fifo;
   }
   
-  public static function loadSong($entry)
+  public function loadSong($entry)
   {
-    self::$currentSong = $entry;
+    $this->currentSong = $entry;
     $id = $entry->getId();
     $mp3file = csFetch::getSong($id);
-    $fifo = self::$fifo;
     
     sleep(1);
-    system('pgrep -f ".*mplayer.*clisonic.*"', $isrunning);
+    system('pgrep -f ".*mplayer.*clisonic.*"', $isRunning);
     
-    if ($isrunning == 0)
+    if ($isRunning === 0)
     {
       // Mplayer is running
       // system("echo 'loadfile $mp3file $songcount' >> $mplayerfifo"); // 
       // Needs to be reimplemented when I figure out a solution to queuing from 
       // $x seconds behind the current song
-      system("echo 'loadfile $mp3file' >> $fifo");
+      system("echo 'loadfile $mp3file' >> {$this->fifo}");
       // $songcount++;
     }
     else 

@@ -21,12 +21,8 @@ $stdio = fopen("php://stdin","r");
 // Constants
 
 // csMemcache, csSHM, csMsgQueue
-define('MEMORY_CLASS', '\memory\csMemcache');
+define('MEMORY_CLASS', '\msgQueue\csMemcache');
 // define('MEMCACHE_PORT', 11211);
 
 define("SHM_KEY", "55555");
 define("SHM_QUEUE_KEY", "20000");
-define("SHM_PID_KEY", "20500");
-define("SHM_TIMELEFT_KEY", "20600");
-define("SHM_CQ_POS_KEY", "20700");
-define("SHM_ISPAUSED_KEY", "20800");

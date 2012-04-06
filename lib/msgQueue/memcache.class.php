@@ -1,24 +1,40 @@
 <?php
 
-namespace memory;
+namespace msgQueue;
 
 /**
- * Class for handling shared memory via memcache
+ * Class for handling a message queue using memcache
  */
-class csMemcache extends csBaseMemory
+class csMemcache extends csBase
 {
   const DEFAULT_PORT = 11211;
   
   private static $memcache;
   
-  public static function get($key, $default = null)
+  public static function queueMsg($msg)
+  {
+    $queue = self::get('msgQueue', array());
+    $queue[] = $msg;
+    self::set('msgQueue', $queue);
+  }
+  
+  public static function getNext()
+  {
+    $queue = self::get('msgQueue', array());
+    $msg = array_shift($queue);
+    self::set('msgQueue', $queue);
+    
+    return $msg;
+  }
+  
+  private static function get($key, $default = null)
   {
     $key = self::getPrefix() . $key;
     $val = self::getInstance()->get($key);
     return !is_null($val) ? $val : $default;
   }
   
-  public static function set($key, $value)
+  private static function set($key, $value)
   {
     $key = self::getPrefix() . $key;
     self::getInstance()->set($key, $value);

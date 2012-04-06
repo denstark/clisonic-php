@@ -2,30 +2,48 @@
 
 class csQueue
 {
+  private $pos = 0;
+  private $entries = array();
+  
   public static function clear()
   {
+    $queue = self::get();
+    $queue->setPos(0);
+    $queue->entries = array();
+    $queue->save();
+    /*
     $fifo = csPlayer::getFifo();
 
     csMemory::set(SHM_QUEUE_KEY, array());
     csPlayer::setTimeLeft(0);
 
     exec("echo 'stop' >> $fifo");
+    */
   }
 
   public static function get() 
   {
-    return csMemory::get(SHM_QUEUE_KEY);
-  }
-  
-  public static function set($queue)
-  {
-    csMemory::set(SHM_QUEUE_KEY, $queue);
-  }
-  
-  public static function add($entries)
-  {
-    $queue = csQueue::get();
+    if (!file_exists('/tmp/clisonic.queue'))
+      return new csQueue;
     
+    return unserialize(file_get_contents('/tmp/clisonic.queue'));
+  }
+  
+  public function getEntries()
+  {
+    return $this->entries;
+  }
+  
+  public function processEntry($key)
+  {
+    if (!isset($this->entries[$key]))
+      throw new Exception('Entry not found to process');
+    
+    $this->entries[$key]->setProcessed(true);
+  }
+  
+  public function add($entries)
+  {
     if (!is_array($entries))
       $entries = array($entries);
     
@@ -38,19 +56,25 @@ class csQueue
         throw new Exception('Cannot directly add a directory to the queue');
       
       echo "Adding {$entry->getTitle()} to the queue\n";
-      $queue[] = $entry;
+      $this->entries[] = $entry;
     }
     
-    csQueue::set($queue);
+    $this->save();
   }
   
-  public static function setPos($pos)
+  public function setPos($pos)
   {
-    csMemory::set(SHM_CQ_POS_KEY, $pos);
+    $this->pos = $pos;
+    $this->save();
   }
   
-  public static function getPos()
+  public function getPos()
   {
-    return csMemory::get(SHM_CQ_POS_KEY);
+    return $this->pos;
+  }
+  
+  public function save()
+  {
+    file_put_contents('/tmp/clisonic.queue', serialize($this));
   }
 }

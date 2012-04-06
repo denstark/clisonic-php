@@ -1,13 +1,23 @@
 <?php
 
-namespace memory;
+namespace msgQueue;
 
 /**
- * Class for handling shared memory using the message queue
+ * Class for handling a message queue using the built-in message queue
  */
-class csMsgQueue extends csBaseMemory
+class csMsgQueue extends csBase
 {
   private static $queue;
+  
+  public static function queueMsg($msg)
+  {
+    self::set(SHM_QUEUE_KEY, $msg);
+  }
+  
+  public static function getNext()
+  {
+    return self::get(SHM_QUEUE_KEY);
+  }
   
   /**
    * Retrieve a value from the message queue
@@ -15,9 +25,9 @@ class csMsgQueue extends csBaseMemory
    * @param String $key
    * @return Mixed
    */
-  public static function get($key, $default = null)
+  private static function get($key, $default = null)
   {
-    msg_receive(self::getQueue(), $key, $realKey, 10000, $val);
+    msg_receive(self::getQueue(), $key, $realKey, 10000, $val, true, MSG_IPC_NOWAIT);
     return !is_null($val) ? $val : $default;
   }
   
@@ -27,7 +37,7 @@ class csMsgQueue extends csBaseMemory
    * @param String $key
    * @param Mixed $value 
    */
-  public static function set($key, $value)
+  private static function set($key, $value)
   {
     msg_send(self::getQueue(), $key, $value);
   }

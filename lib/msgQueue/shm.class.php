@@ -1,13 +1,29 @@
 <?php
 
-namespace memory;
+namespace msgQueue;
 
 /**
- * Class for handling shared memory
+ * Class for handling a message queue using SHM
  */
-class csSHM extends csBaseMemory
+class csSHM extends csBase
 {
   private static $shmem;
+  
+  public static function queueMsg($msg)
+  {
+    $queue = self::get(SHM_QUEUE_KEY, array());
+    $queue[] = $msg;
+    self::set(SHM_QUEUE_KEY, $queue);
+  }
+  
+  public static function getNext()
+  {
+    $queue = self::get(SHM_QUEUE_KEY, array());
+    $msg = array_shift($queue);
+    self::set(SHM_QUEUE_KEY, $queue);
+    
+    return $msg;
+  }
   
   /**
    * Retrieve a value from shared memory
@@ -15,7 +31,7 @@ class csSHM extends csBaseMemory
    * @param String $key
    * @return Mixed
    */
-  public static function get($key, $default = null)
+  private static function get($key, $default = null)
   {
      $val = shm_get_var(self::getShmem(), $key);
      return !is_null($val) ? $val : $default;
@@ -27,7 +43,7 @@ class csSHM extends csBaseMemory
    * @param String $key
    * @param Mixed $value 
    */
-  public static function set($key, $value)
+  private static function set($key, $value)
   {
     shm_put_var(self::getShmem(), $key, $value);
   }
