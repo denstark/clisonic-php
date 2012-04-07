@@ -4,7 +4,9 @@
 $script = 'controller';
 require_once('initialize.php');
 
-$action = isset($argv[1]) ? $argv[1] : 'browse';
+$action = isset($argv[1]) ? $argv[1] : null;
+
+$continual = (is_null($action));
 
 array_shift($argv); // pull off the script name
 array_shift($argv); // pull off the action
@@ -18,11 +20,28 @@ if ($notRunning)
   exec("./clisonicd > $daemonOut 2>&1 &");
 }
 
-try
+do
 {
-  csController::go($action, $argv);
-}
-catch (Exception $ex)
-{
-  echo "Error: {$ex->getMessage()}\n";
-}
+
+  try
+  {
+    csController::go($action, $argv);
+  }
+  catch (Exception $ex)
+  {
+    echo "Error: {$ex->getMessage()}\n";
+  }
+  
+  if ($continual)
+  {
+    $stdio = csSettings::get(CS_STDIO);
+    
+    echo 'cs=# ';
+    $actions = trim(fgets($stdio));
+    
+    $temp = explode(' ', $actions);
+    $action = array_shift($temp);
+    $argv = $temp;
+  }
+
+} while ($continual);

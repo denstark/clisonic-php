@@ -40,6 +40,12 @@ class csPlayer
     exec("{$this->mplayerString} > $mplayerOut 2>&1 &", $output);
   }
   
+  public function stop()
+  {
+    $this->paused = true;
+    $this->sendMsg('stop');
+  }
+  
   /**
    * Pause the current song
    */

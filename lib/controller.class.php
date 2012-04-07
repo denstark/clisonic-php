@@ -7,6 +7,10 @@ class csController
     self::convertAlias($action);
     switch ($action)
     {
+      case null:
+        echo "clisonic-php\n";
+        echo 'Type "help" for help.' . "\n\n";
+        break;
       case 'browse':
         self::browse();
         break;
@@ -16,6 +20,12 @@ class csController
       case 'clear':
         csQueue::clear();
         break;
+      case 'exit':
+        echo "bye\n";
+        csMsgQueue::queueMsg('exit');
+        exit;
+        break;
+      case 'stop':
       case 'restart':
       case 'previous':
       case 'next':

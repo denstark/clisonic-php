@@ -37,6 +37,7 @@ while (true)
       case 'pause':
         $player->pause();
         break;
+      case 'start':
       case 'restart':
         csQueue::get()->decrementPos();
         $forceNext = true;
@@ -50,6 +51,9 @@ while (true)
         $forceNext = true;
         break;
       case 'stop':
+        $player->stop();
+        break;
+      case 'exit':
         exit;
         break;
     }
