@@ -5,7 +5,22 @@ $script = 'daemon';
 require_once('initialize.php');
 
 $player = new csPlayer($mplayerfifo, $cachesize);
+
+// set some initial values so oldXXX can be set to something
+$timeLeft = 0;
+$queue = null;
+
+// force the next song in the queue to play
+$forceNext = false;
+
+// seconds until next check-in with mplayer
 $check = 0;
+
+// has the next song in the queue been processed?
+$allSet = false;
+
+// can we expect timeLeft to increase (did we start the next song)
+$expectJump = false;
 
 while (true) 
 {
@@ -22,35 +37,91 @@ while (true)
         echo "Pausing player\n";
         $player->pause();
         break;
+      case 'restart':
+        csQueue::get()->decrementPos();
+        $forceNext = true;
+        break;
+      case 'previous':
+        csQueue::get()->decrementPos(2);
+        $forceNext = true;
+        break;
+      case 'next':
+        csQueue::get()->incrementPos();
+        $forceNext = true;
+        break;
       case 'stop':
         exit;
         break;
     }
   }
   
+  if ($forceNext)
+    $check = 0;
+  
   $check--;
   
   if ($check <= 0 && !$player->isPaused())
   {
+    $oldTimeLeft = $timeLeft;
     $timeLeft = $player->getTimeLeft();
-
+    
+    // if a song has just finished, timeleft may return it's full duration again
+    // we protect against this happening when we haven't told the next song
+    // to play yet
+    if ($forceNext || ($timeLeft > $oldTimeLeft && !$expectJump))
+    {
+      $expectJump = false;
+      $forceNext = false;
+      $timeLeft = 0;
+    }
+    
+    echo "Timeleft: $timeLeft\n";
+    
     // should we be loading the next song?
     if ($timeLeft <= $bufferTime)
     {
       // update the queue
+      $oldQueue = $queue;
       $queue = csQueue::get();
-      $entries = $queue->getEntries();
+      
+      // the queue has changed, don't assume we've processed the next song
+      if ($queue != $oldQueue)
+        $allSet = false;
+      
+      $nextSong = $queue->getNextPos();
+      $entry = $queue->getNextEntry();
 
-      foreach ($entries as $key => $entry)
+      if (!is_null($entry))
       {
-        // find the first unprocessed entry in the queue
-        if (!$entry->wasProcessed())
+        $justProcessed = false;
+        
+        if (!$allSet)
         {
-          $player->loadSong($entry);
-          echo "Processing entry!\n";
-          $queue->processEntry($key);
-          $queue->setPos($key);
-          break;
+          // we cache this value so we don't do reads every frame
+          $allSet = $entry->wasProcessed();
+          
+          if (!$allSet)
+          {
+            echo "Processing entry!\n";
+            $allSet = true;
+            $justProcessed = true;
+            $player->loadSong($entry);
+          }
+        }
+
+        if ($timeLeft <= 0)
+        {
+          // give curl a second to catch up
+          if ($justProcessed)
+          {
+            sleep(1);
+          }
+          
+          echo "Playing entry!\n";
+          $expectJump = true;
+          $allSet = false;
+          $queue->setPos($nextSong);
+          $player->playSong($entry);
         }
       }
     }
@@ -74,6 +145,5 @@ while (true)
     }
   }
   
-  echo "timeleft: $timeLeft\n";
   sleep(1);
 }

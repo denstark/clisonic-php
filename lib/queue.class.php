@@ -2,7 +2,7 @@
 
 class csQueue
 {
-  private $pos = 0;
+  private $pos;
   private $entries = array();
   
   public static function clear()
@@ -34,12 +34,16 @@ class csQueue
     return $this->entries;
   }
   
-  public function processEntry($key)
+  public function getEntry($pos)
   {
-    if (!isset($this->entries[$key]))
-      throw new Exception('Entry not found to process');
-    
-    $this->entries[$key]->setProcessed(true);
+    return isset($this->entries[$pos])
+      ? $this->entries[$pos]
+      : null;
+  }
+  
+  public function getNextEntry()
+  {
+    return $this->getEntry($this->getNextPos());
   }
   
   public function add($entries)
@@ -73,6 +77,29 @@ class csQueue
     return $this->pos;
   }
   
+  public function decrementPos($dist = 1)
+  {
+    $this->pos = (!is_null($this->pos) && $this->pos >= $dist)
+      ? $this->pos - $dist
+      : null;
+    
+    $this->save();
+  }
+  
+  public function incrementPos($dist = 1)
+  {
+    $this->pos = !is_null($this->pos)
+      ? $this->pos + $dist
+      : $dist - 1;
+    
+    $this->save();
+  }
+  
+  public function getNextPos()
+  {
+    return is_null($this->pos) ? 0 : $this->pos + 1;
+  }
+
   public function save()
   {
     file_put_contents('/tmp/clisonic.queue', serialize($this));

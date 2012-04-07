@@ -7,7 +7,6 @@ class csQueueEntry
   private $isDir = false;
   private $duration;
   private $album;
-  private $processed = false;
   
   public function getId() { return $this->id; }
   public function setId($val) { $this->id = $val; }
@@ -27,6 +26,14 @@ class csQueueEntry
   }
   public function setAlbum($val) { $this->album = $val; }
   
-  public function wasProcessed() { return $this->processed; }
-  public function setProcessed($val) { $this->processed = $val; }
+  public function wasProcessed()
+  {
+    return file_exists($this->getFileName());
+  }
+  
+  public function getFileName()
+  {
+    global $mp3dir;
+    return "$mp3dir/" . md5($this->id) . '.mp3';
+  }
 }

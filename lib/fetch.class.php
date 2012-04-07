@@ -62,7 +62,7 @@ class csFetch
   {
     global $baseurl, $dopts, $mp3dir;
     
-    $mp3file = "$mp3dir/$id.mp3";
+    $mp3file = "$mp3dir/" . md5($id) . '.mp3';
     exec("curl -ksN '$baseurl/stream.view$dopts&id=$id' -o $mp3file > /dev/null 2>&1 &");
     
     return $mp3file;

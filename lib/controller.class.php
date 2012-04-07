@@ -4,24 +4,43 @@ class csController
 {
   public static function go($action, $arguments = array())
   {
+    self::convertAlias($action);
     switch ($action)
     {
       case 'browse':
-      case '-b':
         self::browse();
         break;
       case 'view':
-      case '-v':
         self::viewQueue();
         break;
       case 'clear':
-      case '-c':
         csQueue::clear();
         break;
+      case 'restart':
+      case 'previous':
+      case 'next':
       default:
         csMsgQueue::queueMsg($action);
         break;
     }
+  }
+  
+  public static function convertAlias(&$action)
+  {
+    $aliases = array(
+      '-b' => 'browse',
+      '-v' => 'view',
+      '-c' => 'clear',
+      '-r' => 'restart',
+      '-p' => 'previous',
+      '-u' => 'pause',
+      'prev' => 'previous',
+      '-n' => 'next',
+    );
+    
+    $action = array_key_exists($action, $aliases)
+      ? $aliases[$action]
+      : $action;
   }
   
   public static function listEntries($entries)

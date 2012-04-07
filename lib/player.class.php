@@ -106,6 +106,7 @@ class csPlayer
     if (empty($msg))
       throw new Exception('No message to send');
 
+    echo "Sending msg '$msg' to fifo\n";
     exec("echo '$msg' >> {$this->fifo}");
   }
   
@@ -116,25 +117,12 @@ class csPlayer
   
   public function loadSong($entry)
   {
+    csFetch::getSong($entry->getId());
+  }
+  
+  public function playSong($entry)
+  {
     $this->currentSong = $entry;
-    $id = $entry->getId();
-    $mp3file = csFetch::getSong($id);
-    
-    sleep(1);
-    system('pgrep -f ".*mplayer.*clisonic.*"', $isRunning);
-    
-    if ($isRunning === 0)
-    {
-      // Mplayer is running
-      // system("echo 'loadfile $mp3file $songcount' >> $mplayerfifo"); // 
-      // Needs to be reimplemented when I figure out a solution to queuing from 
-      // $x seconds behind the current song
-      system("echo 'loadfile $mp3file' >> {$this->fifo}");
-      // $songcount++;
-    }
-    else 
-    {
-      throw new Exception('Mplayer is not runnning');
-    }
+    $this->sendMsg("loadfile {$entry->getFileName()}");
   }
 }
