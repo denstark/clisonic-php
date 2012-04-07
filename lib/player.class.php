@@ -19,7 +19,7 @@ class csPlayer
   
   public function __destruct()
   {
-    exec("pkill -f '{$this->mplayerString}'", $output);
+    $this->sendMsg('quit');
   }
   
   private function createFifo() 
