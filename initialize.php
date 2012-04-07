@@ -4,6 +4,14 @@ $script = isset($script) ? $script : null;
 
 require('lib/settings.class.php');
 
+function logOut($msg)
+{
+  if (csSettings::get(CS_VERBOSE, false))
+  {
+    echo $msg . "\n";
+  }
+}
+
 // setup pre-defaults
 register_setting(CS_FIFO, '/tmp/clisonic.fifo');
 register_setting(CS_BUFFER_LENGTH, 20);
@@ -18,6 +26,7 @@ register_setting(CS_API_VER, '1.7.0');
 register_setting(CS_QUEUE_PATH, '/tmp/clisonic.queue');
 register_setting(CS_PLAYER_OUT, '/tmp/clisonic.player.out');
 register_setting(CS_DAEMON_OUT, '/tmp/clisonic.out');
+register_setting(CS_VERBOSE, false);
 
 // Config file is required
 require('settings.inc.php');

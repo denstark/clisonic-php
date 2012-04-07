@@ -21,6 +21,7 @@ define('CS_QUEUE_PATH', 'queue.path');
 define('CS_PLAYER_OUT', 'player.out');
 define('CS_CUSTOM_ALIASES', 'custom_aliases');
 define('CS_DAEMON_OUT', 'daemon.out');
+define('CS_VERBOSE', 'verbose');
 
 class csSettings
 {

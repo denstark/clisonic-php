@@ -28,6 +28,7 @@ class csPlayer
     {
       exec("rm -f {$this->fifo}");
     }
+    
     exec("mkfifo {$this->fifo}");
   }
 
@@ -45,7 +46,6 @@ class csPlayer
   public function pause()
   {
     $this->paused = !$this->paused;
-    echo "Sending pause request to fifo ({$this->fifo})\n";
     $this->sendMsg('pause');
   }
   
@@ -109,7 +109,7 @@ class csPlayer
     if (empty($msg))
       throw new Exception('No message to send');
 
-    echo "Sending msg '$msg' to fifo\n";
+    logOut("Sending msg '$msg' to fifo");
     exec("echo '$msg' >> {$this->fifo}");
   }
   

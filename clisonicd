@@ -28,14 +28,13 @@ while (true)
   // what's in the message queue?
   while ($msg = csMsgQueue::getNext())
   {
-    echo "Received message: $msg\n";
+    logOut("Received message: $msg");
     
     $msg = trim($msg);
     
     switch ($msg)
     {
       case 'pause':
-        echo "Pausing player\n";
         $player->pause();
         break;
       case 'restart':
@@ -77,7 +76,7 @@ while (true)
     
     $expectJump = false;
     
-    echo "Timeleft: $timeLeft\n";
+    logOut("Timeleft: $timeLeft");
     
     // should we be loading or playing the next song?
     if ($timeLeft <= $bufferTime)
@@ -104,7 +103,7 @@ while (true)
           
           if (!$allSet)
           {
-            echo "Processing entry!\n";
+            logOut('Processing entry!');
             $allSet = true;
             $justProcessed = true;
             $player->loadSong($entry);
@@ -120,7 +119,7 @@ while (true)
             sleep(1);
           }
           
-          echo "Playing entry!\n";
+          logOut('Playing entry!');
           $expectJump = true;
           $allSet = false;
           $queue->setPos($nextSong);

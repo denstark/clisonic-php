@@ -21,6 +21,7 @@ register_setting(CS_API_URL, 'http://myserver.net:443/rest');
 // register_setting(CS_MEMCACHE_PORT, 11211);
 // register_setting(CS_APP, 'clisonic-php');
 // register_setting(CS_API_VER, '1.7.0');
+// register_setting(CS_VERBOSE, false);
 
 /*
 // custom arguments to pass along with api requests
