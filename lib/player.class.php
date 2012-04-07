@@ -8,6 +8,7 @@ class csPlayer
   private $mplayerString;
   private $fifo;
   private $paused = false;
+  private $stopped = true;
   private $currentSong;
   
   public function __construct()
@@ -42,8 +43,13 @@ class csPlayer
   
   public function stop()
   {
-    $this->paused = true;
+    $this->stopped = true;
     $this->sendMsg('stop');
+  }
+  
+  public function play()
+  {
+    $this->stopped = false;
   }
   
   /**
@@ -58,6 +64,11 @@ class csPlayer
   public function isPaused()
   {
     return $this->paused;
+  }
+  
+  public function isStopped()
+  {
+    return $this->stopped;
   }
 
   /**
@@ -131,6 +142,7 @@ class csPlayer
   
   public function playSong($entry)
   {
+    $this->stopped = false;
     $this->currentSong = $entry;
     $this->sendMsg("loadfile {$entry->getFileName()}");
   }

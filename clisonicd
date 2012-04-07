@@ -39,14 +39,17 @@ while (true)
         break;
       case 'start':
       case 'restart':
+        $player->play();
         csQueue::get()->decrementPos();
         $forceNext = true;
         break;
       case 'previous':
+        $player->play();
         csQueue::get()->decrementPos(2);
         $forceNext = true;
         break;
       case 'next':
+        $player->play();
         csQueue::get()->incrementPos();
         $forceNext = true;
         break;
@@ -64,7 +67,7 @@ while (true)
   
   $check--;
   
-  if ($check <= 0 && !$player->isPaused())
+  if ($check <= 0 && !$player->isPaused() && !$player->isStopped())
   {
     $oldTimeLeft = $timeLeft;
     $timeLeft = $player->getTimeLeft();
