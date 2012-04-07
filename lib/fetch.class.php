@@ -4,13 +4,37 @@ class csFetch
 {
   private static $artists;
   
+  private static function getArgString()
+  {
+    $args = csSettings::get(CS_API_ARGS);
+    
+    $argString = '';
+    
+    if (is_array($args) && count($args))
+    {
+      $argString = '?';
+      
+      $params = array();
+      foreach ($args as $key => $value)
+      {
+        $params[] = urlencode($key) . '=' . urlencode($value);
+      }
+      
+      $argString .= join('&', $params);
+    }
+    
+    return $argString;
+  }
+  
   public static function getArtists()
   {
     if (!is_null(self::$artists))
       return self::$artists;
     
-    global $baseurl, $dopts;
-    $xmldata = `curl -ks '$baseurl/getIndexes.view$dopts&musicFolderId=0'`;
+    $baseurl = csSettings::get(CS_API_URL);
+    $argString = self::getArgString();
+    
+    $xmldata = `curl -ks '$baseurl/getIndexes.view$argString&musicFolderId=0'`;
     
     $artistsXML = new SimpleXMLElement($xmldata);
     $artists = array();
@@ -30,8 +54,10 @@ class csFetch
   
   public static function getMusicDir($dirId)
   {
-    global $baseurl, $dopts;
-    $xmldata = `curl -ks '$baseurl/getMusicDirectory.view$dopts&id=$dirId'`;
+    $baseurl = csSettings::get(CS_API_URL);
+    $argString = self::getArgString();
+    
+    $xmldata = `curl -ks '$baseurl/getMusicDirectory.view$argString&id=$dirId'`;
     
     $entriesXML = new SimpleXMLElement($xmldata);
     $entries = array();
@@ -58,12 +84,13 @@ class csFetch
     return $entries;
   }
   
-  public static function getSong($id)
+  public static function getSong($entry)
   {
-    global $baseurl, $dopts, $mp3dir;
+    $baseurl = csSettings::get(CS_API_URL);
+    $argString = self::getArgString();
     
-    $mp3file = "$mp3dir/" . md5($id) . '.mp3';
-    exec("curl -ksN '$baseurl/stream.view$dopts&id=$id' -o $mp3file > /dev/null 2>&1 &");
+    $mp3file = $entry->getFileName();
+    exec("curl -ksN '$baseurl/stream.view$argString&id=$id' -o $mp3file > /dev/null 2>&1 &");
     
     return $mp3file;
   }

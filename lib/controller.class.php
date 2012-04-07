@@ -38,6 +38,13 @@ class csController
       '-n' => 'next',
     );
     
+    $customAliases = csSettings::get(CS_CUSTOM_ALIASES);
+    
+    if (is_array($customAliases) && count($customAliases))
+    {
+      $aliases = array_merge($aliases, $customAliases);
+    }
+    
     $action = array_key_exists($action, $aliases)
       ? $aliases[$action]
       : $action;
@@ -72,7 +79,7 @@ class csController
   
   public static function browse()
   {
-    global $stdio;
+    $stdio = csSettings::get(CS_STDIO);
     
     $artists = csFetch::getArtists();
     echo self::listArtists($artists);

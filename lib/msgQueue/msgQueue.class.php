@@ -11,12 +11,12 @@ class csMsgQueue extends csBase
   
   public static function queueMsg($msg)
   {
-    self::set(SHM_QUEUE_KEY, $msg);
+    self::set(\csSettings::get(CS_MESSAGE_KEY), $msg);
   }
   
   public static function getNext()
   {
-    return self::get(SHM_QUEUE_KEY);
+    return self::get(\csSettings::get(CS_MESSAGE_KEY));
   }
   
   /**
@@ -56,6 +56,6 @@ class csMsgQueue extends csBase
   {
     return !is_null(self::$queue)
       ? self::$queue
-      : self::$queue = msg_get_queue(SHM_KEY);
+      : self::$queue = msg_get_queue(\csSettings::get(CS_QUEUE_KEY));
   }
 }

@@ -40,9 +40,11 @@ class csMsgQueue extends \msgQueue\csBase
     if (!is_null(self::$className))
       return self::$className;
     
-    if (defined('MEMORY_CLASS') && class_exists(MEMORY_CLASS))
+    $memoryClass = csSettings::get(CS_MEMORY_CLASS);
+    
+    if (!is_null($memoryClass) && class_exists($memoryClass))
     {
-      return self::$className = MEMORY_CLASS;
+      return self::$className = $memoryClass;
     }
     
     return self::DEFAULT_CLASS;

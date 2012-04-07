@@ -23,10 +23,12 @@ class csQueue
 
   public static function get() 
   {
-    if (!file_exists('/tmp/clisonic.queue'))
+    $queueLoc = csSettings::get(CS_QUEUE_PATH);
+    
+    if (!file_exists($queueLoc))
       return new csQueue;
     
-    return unserialize(file_get_contents('/tmp/clisonic.queue'));
+    return unserialize(file_get_contents($queueLoc));
   }
   
   public function getEntries()
@@ -102,6 +104,7 @@ class csQueue
 
   public function save()
   {
-    file_put_contents('/tmp/clisonic.queue', serialize($this));
+    $queueLoc = csSettings::get(CS_QUEUE_PATH);
+    file_put_contents($queueLoc, serialize($this));
   }
 }

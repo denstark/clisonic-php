@@ -4,7 +4,8 @@
 $script = 'daemon';
 require_once('initialize.php');
 
-$player = new csPlayer($mplayerfifo, $cachesize);
+$player = new csPlayer();
+$bufferTime = csSettings::get(CS_BUFFER_LENGTH);
 
 // set some initial values so oldXXX can be set to something
 $timeLeft = 0;

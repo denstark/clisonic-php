@@ -11,16 +11,18 @@ class csSHM extends csBase
   
   public static function queueMsg($msg)
   {
-    $queue = self::get(SHM_QUEUE_KEY, array());
+    $key = \csSettings::get(CS_MESSAGE_KEY);
+    $queue = self::get($key, array());
     $queue[] = $msg;
-    self::set(SHM_QUEUE_KEY, $queue);
+    self::set($key, $queue);
   }
   
   public static function getNext()
   {
-    $queue = self::get(SHM_QUEUE_KEY, array());
+    $key = \csSettings::get(CS_MESSAGE_KEY);
+    $queue = self::get($key, array());
     $msg = array_shift($queue);
-    self::set(SHM_QUEUE_KEY, $queue);
+    self::set($key, $queue);
     
     return $msg;
   }
@@ -62,6 +64,6 @@ class csSHM extends csBase
   {
     return !is_null(self::$shmem)
       ? self::$shmem
-      : self::$shmem = shm_attach(SHM_KEY);
+      : self::$shmem = shm_attach(\csSettings::get(CS_QUEUE_KEY));
   }
 }

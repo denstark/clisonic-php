@@ -13,7 +13,10 @@ array_shift($argv); // pull off the action
 exec('ps -C clisonicd', $output, $notRunning);
 
 if ($notRunning)
-  exec('./clisonicd > /tmp/clisonic.out 2>&1 &');
+{
+  $daemonOut = csSettings::get(CS_DAEMON_OUT);
+  exec("./clisonicd > $daemonOut 2>&1 &");
+}
 
 try
 {

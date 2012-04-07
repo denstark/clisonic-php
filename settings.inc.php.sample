@@ -1,28 +1,42 @@
 <?php
 
-$server = 'myserver.net';
-$port = 443;
-$username = 'myuser';
-$password = 'mypassword';
-// Method can be http or https
-$method = 'http';
-$mplayerfifo = '/tmp/clisonic.fifo';
-$mp3dir = '/tmp';
-$cachesize = 500; //  Song cache size in KB
-$bufferTime = 0; // Time before a song ends to buffer the next one
-// Leave $bufferTime at 0 for now, as it will break things if you change it
+// required settings
+register_setting(CS_USERNAME, 'myuser');
+register_setting(CS_PASSWORD, 'mypassword');
+register_setting(CS_API_URL, 'http://myserver.net:443/rest');
 
-$app = 'clisonic-php';
-$apiver = '1.7.0';
-$baseurl = "$method://$server:$port/rest";
-$dopts = "?u=$username&p=$password&v=$apiver&c=$app";
-$stdio = fopen("php://stdin","r");
+// overrideable settings (shown with default values)
+// register_setting(CS_FIFO, '/tmp/clisonic.fifo');
+// register_setting(CS_BUFFER_LENGTH, 20);
+// register_setting(CS_CACHE_SIZE, 500);
+// register_setting(CS_QUEUE_KEY, 20000);
+// register_setting(CS_MESSAGE_KEY, 20000);
+// register_setting(CS_MP3_DIR, '/tmp');
+// register_setting(CS_QUEUE_PATH, '/tmp/clisonic.queue');
+// register_setting(CS_PLAYER_OUT, '/tmp/clisonic.player.out');
+// register_setting(CS_DAEMON_OUT, '/tmp/clisonic.out');
+// register_setting(CS_STDIO, fopen('php://stdin', 'r'));
+// register_setting(CS_MEMORY_CLASS, '\msgQueue\csMsgQueue');
+// register_setting(CS_MEMCACHE_HOST, 'localhost');
+// register_setting(CS_MEMCACHE_PORT, 11211);
+// register_setting(CS_APP, 'clisonic-php');
+// register_setting(CS_API_VER, '1.7.0');
 
-// Constants
+/*
+// custom arguments to pass along with api requests
+register_setting(CS_API_ARGS,
+  array(
+    'u' => csSettings::get(CS_USERNAME),
+    'p' => csSettings::get(CS_PASSWORD),
+    'v' => csSettings::get(CS_API_VER),
+    'c' => csSettings::get(CS_APP),
+  ));
+*/
 
-// csMemcache, csSHM, csMsgQueue
-define('MEMORY_CLASS', '\msgQueue\csMemcache');
-// define('MEMCACHE_PORT', 11211);
-
-define("SHM_KEY", "55555");
-define("SHM_QUEUE_KEY", "20000");
+/*
+// custom aliases
+register_setting(CS_CUSTOM_ALIASES,
+  array(
+    'alias' => 'command',
+  ));
+*/

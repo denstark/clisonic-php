@@ -7,6 +7,7 @@ namespace msgQueue;
  */
 class csMemcache extends csBase
 {
+  const DEFAULT_HOST = 'localhost';
   const DEFAULT_PORT = 11211;
   
   private static $memcache;
@@ -46,11 +47,10 @@ class csMemcache extends csBase
     {
       self::$memcache = new \Memcache;
       
-      $port = defined('MEMCACHE_PORT')
-        ? MEMCACHE_PORT
-        : self::DEFAULT_PORT;
+      $host = \csSettings::get(CS_MEMCACHE_HOST, self::DEFAULT_HOST);
+      $port = \csSettings::get(CS_MEMCACHE_PORT, self::DEFAULT_PORT);
       
-      self::$memcache->connect('localhost', $port);
+      self::$memcache->connect($host, $port);
     }
     
     return self::$memcache;

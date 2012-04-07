@@ -10,11 +10,11 @@ class csPlayer
   private $paused = false;
   private $currentSong;
   
-  public function __construct($mplayerfifo, $cachesize)
+  public function __construct()
   {
-    $this->fifo = $mplayerfifo;
+    $this->fifo = csSettings::get(CS_FIFO);
     $this->createFifo();
-    $this->start($cachesize);
+    $this->start();
   }
   
   public function __destruct()
@@ -31,10 +31,12 @@ class csPlayer
     exec("mkfifo {$this->fifo}");
   }
 
-  private function start($cachesize)
+  private function start()
   {
+    $cachesize = csSettings::get(CS_CACHE_SIZE);
+    $mplayerOut = csSettings::get(CS_PLAYER_OUT);
     $this->mplayerString = "mplayer -quiet -cache $cachesize -slave -input file={$this->fifo} -idle";
-    exec($this->mplayerString . ' > /tmp/clisonic-mplayer 2>&1 &', $output);
+    exec("{$this->mplayerString} > $mplayerOut 2>&1 &", $output);
   }
   
   /**
@@ -83,9 +85,10 @@ class csPlayer
     
   public function getTimePos()
   {
+    $mplayerOut = csSettings::get(CS_PLAYER_OUT);
     $this->sendMsg('get_property time_pos');
     
-    $out = `tac /tmp/clisonic-mplayer | grep -m1 'ANS_time_pos\|Failed.*time_pos.*'`;
+    $out = `tac $mplayerOut | grep -m1 'ANS_time_pos\|Failed.*time_pos.*'`;
     
     if (preg_match('/=(.*)/', $out, $matches))
       return ceil($matches[1]);
@@ -117,7 +120,7 @@ class csPlayer
   
   public function loadSong($entry)
   {
-    csFetch::getSong($entry->getId());
+    csFetch::getSong($entry);
   }
   
   public function playSong($entry)

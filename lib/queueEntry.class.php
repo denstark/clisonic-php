@@ -33,7 +33,7 @@ class csQueueEntry
   
   public function getFileName()
   {
-    global $mp3dir;
+    $mp3dir = csSettings::get(CS_MP3_DIR);
     return "$mp3dir/" . md5($this->id) . '.mp3';
   }
 }
