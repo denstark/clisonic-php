@@ -65,19 +65,20 @@ while (true)
     $oldTimeLeft = $timeLeft;
     $timeLeft = $player->getTimeLeft();
     
-    // if a song has just finished, timeleft may return it's full duration again
+    // if a song has just finished, timeleft may return its full duration again
     // we protect against this happening when we haven't told the next song
     // to play yet
     if ($forceNext || ($timeLeft > $oldTimeLeft && !$expectJump))
     {
-      $expectJump = false;
       $forceNext = false;
       $timeLeft = 0;
     }
     
+    $expectJump = false;
+    
     echo "Timeleft: $timeLeft\n";
     
-    // should we be loading the next song?
+    // should we be loading or playing the next song?
     if ($timeLeft <= $bufferTime)
     {
       // update the queue
@@ -109,6 +110,7 @@ while (true)
           }
         }
 
+        // should we start the next song?
         if ($timeLeft <= 0)
         {
           // give curl a second to catch up
