@@ -38,10 +38,34 @@ do
     
     echo 'cs=# ';
     $actions = trim(fgets($stdio));
+    $argv = array();
     
-    $temp = explode(' ', $actions);
-    $action = array_shift($temp);
-    $argv = $temp;
+    while (strlen($actions))
+    {
+      $match = preg_match('/^\'([^\']*)\'/', $actions, $matches);
+      
+      if (!$match)
+      {
+        $match = preg_match('/^"([^"]*)"/', $actions, $matches);
+      }
+      
+      if (!$match)
+      {
+        $match = preg_match('/^([^ ]*)/', $actions, $matches);
+      }
+      
+      if ($match)
+      {
+        $argv[] = $matches[1];
+        $actions = trim(substr($actions, strlen($matches[0])));
+      }
+      else
+      {
+        $actions = null;
+      }
+    }
+    
+    $action = array_shift($argv);
   }
 
 } while ($continual);

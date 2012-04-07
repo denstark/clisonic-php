@@ -12,7 +12,7 @@ class csController
         echo 'Type "help" for help.' . "\n\n";
         break;
       case 'browse':
-        self::browse();
+        self::browse($arguments);
         break;
       case 'view':
         self::viewQueue();
@@ -87,11 +87,13 @@ class csController
     return $output;
   }
   
-  public static function browse()
+  public static function browse($arguments = array())
   {
     $stdio = csSettings::get(CS_STDIO);
     
-    $artists = csFetch::getArtists();
+    $pattern = array_shift($arguments);
+    
+    $artists = csFetch::getArtists($pattern);
     echo self::listArtists($artists);
     
     $isValid = false;
@@ -100,6 +102,11 @@ class csController
     {
       echo "Please input an artist number: ";
       $artistIndex = trim(fgets($stdio));
+      
+      if (strtolower($artistIndex) == 'q')
+      {
+        return;
+      }
       
       $isValid = isset($artists[$artistIndex]);
     }
@@ -114,6 +121,11 @@ class csController
       echo self::listEntries($entries);
       echo "Please input an album/track number (A to queue the album): ";
       $albumIndex = trim(fgets($stdio));
+      
+      if (strtolower($albumIndex) == 'q')
+      {
+        return;
+      }
             
       if (strtolower($albumIndex) == 'a')
       {

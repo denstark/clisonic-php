@@ -26,10 +26,15 @@ class csFetch
     return $argString;
   }
   
-  public static function getArtists()
+  public static function getArtists($pattern = null)
   {
     if (!is_null(self::$artists))
       return self::$artists;
+    
+    if (!is_null($pattern))
+    {
+      $pattern = '/' . str_replace('/', '\/', $pattern) . '/i';
+    }
     
     $baseurl = csSettings::get(CS_API_URL);
     $argString = self::getArgString();
@@ -43,9 +48,19 @@ class csFetch
     {
       foreach ($index->artist as $artist)
       {
+        $match = true;
         $name = (string) $artist->attributes()->name;
-        $id = (string) $artist->attributes()->id;
-        $artists[] = array('name' => $name, 'id' => $id);
+        
+        if (!is_null($pattern))
+        {
+          $match = preg_match($pattern, $name);
+        }
+        
+        if ($match)
+        {
+          $id = (string) $artist->attributes()->id;
+          $artists[] = array('name' => $name, 'id' => $id);
+        }
       }
     }
     
