@@ -5,6 +5,7 @@
  */
 class csPlayer
 {
+  private $mplayerString;
   private $fifo;
   private $paused = false;
   private $currentSong;
@@ -14,6 +15,11 @@ class csPlayer
     $this->fifo = $mplayerfifo;
     $this->createFifo();
     $this->start($cachesize);
+  }
+  
+  public function __destruct()
+  {
+    exec("pkill -f '{$this->mplayerString}'", $output);
   }
   
   private function createFifo() 
@@ -27,7 +33,8 @@ class csPlayer
 
   private function start($cachesize)
   {
-    exec("mplayer -quiet -cache $cachesize -slave -input file={$this->fifo} -idle > /tmp/clisonic-mplayer 2>&1 &", $output);
+    $this->mplayerString = "mplayer -quiet -cache $cachesize -slave -input file={$this->fifo} -idle";
+    exec($this->mplayerString . ' > /tmp/clisonic-mplayer 2>&1 &', $output);
   }
   
   /**

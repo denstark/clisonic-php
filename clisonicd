@@ -5,10 +5,9 @@ $script = 'daemon';
 require_once('initialize.php');
 
 $player = new csPlayer($mplayerfifo, $cachesize);
+$check = 0;
 
-$kg = true;
-
-while ($kg) 
+while (true) 
 {
   // what's in the message queue?
   while ($msg = csMsgQueue::getNext())
@@ -29,7 +28,9 @@ while ($kg)
     }
   }
   
-  if (!$player->isPaused())
+  $check--;
+  
+  if ($check <= 0 && !$player->isPaused())
   {
     $timeLeft = $player->getTimeLeft();
 
@@ -52,6 +53,24 @@ while ($kg)
           break;
         }
       }
+    }
+  
+    // there are more than 30 seconds left in the current song
+    // unless we receive input to take action, we'll check again in 20
+    if ($timeLeft > 30 )
+    {
+      $check = 20;
+    }
+    // there are more than 10 seconds left in the current song
+    // we'll check back in 5
+    elseif ($timeLeft > 10)
+    {
+      $check = 5;
+    }
+    // the song will be ending soon, check each frame
+    else
+    {
+      $check = 0;
     }
   }
   
