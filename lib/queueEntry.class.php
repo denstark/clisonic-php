@@ -7,6 +7,15 @@ class csQueueEntry
   private $isDir = false;
   private $duration;
   private $album;
+  private $unique;
+  
+  public function __construct()
+  {
+    // generate a unique ID
+    $this->unique = uniqid(rand(10, 99) . '.');
+  }
+  
+  public function getUUID() { return $this->unique; }
   
   public function getId() { return $this->id; }
   public function setId($val) { $this->id = $val; }

@@ -25,6 +25,14 @@ class csController
         csMsgQueue::queueMsg('exit');
         exit;
         break;
+      case 'goto':
+        if (!isset($arguments[0]))
+        {
+          throw new Exception('Goto requires an argument');
+        }
+        
+        csMsgQueue::queueMsg('goto ' . $arguments[0]);
+        break;
       case 'stop':
       case 'restart':
       case 'previous':
@@ -153,6 +161,7 @@ class csController
     $queue = csQueue::get();
     $currentPos = $queue->getPos();
     $entries = $queue->getEntries();
+    $sortArray = $queue->getSortingArray();
     
     if (!count($entries))
     {
@@ -160,8 +169,13 @@ class csController
     }
     else
     {
-      foreach ($entries as $key => $entry)
+      echo ($queue->isShuffled()) ? '(Shuffled)' : '(Not shuffled)';
+      echo "\n";
+      
+      foreach ($sortArray as $key => $entryId)
       {
+        $entry = $entries[$entryId];
+        
         if ($key == $currentPos)
           echo "*";
 

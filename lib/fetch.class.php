@@ -104,6 +104,7 @@ class csFetch
     $baseurl = csSettings::get(CS_API_URL);
     $argString = self::getArgString();
     
+    $id = $entry->getId();
     $mp3file = $entry->getFileName();
     exec("curl -ksN '$baseurl/stream.view$argString&id=$id' -o $mp3file > /dev/null 2>&1 &");
     

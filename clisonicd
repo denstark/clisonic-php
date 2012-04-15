@@ -30,10 +30,23 @@ while (true)
   {
     logOut("Received message: $msg");
     
-    $msg = trim($msg);
+    $parts = explode(' ', $msg);
+    
+    $msg = array_shift($parts);
     
     switch ($msg)
     {
+      case 'goto':
+        csQueue::get()->setPos(array_shift($parts));
+        csQueue::get()->decrementPos();
+        $forceNext = true;
+        break;
+      case 'shuffle':
+        csQueue::get()->toggleShuffle();
+        break;
+      case 'repeat':
+        csQueue::get()->toggleRepeat();
+        break;
       case 'pause':
         $player->pause();
         break;
@@ -50,7 +63,6 @@ while (true)
         break;
       case 'next':
         $player->play();
-        csQueue::get()->incrementPos();
         $forceNext = true;
         break;
       case 'stop':
